@@ -1,5 +1,6 @@
 import sqlite3
 from sqlite3 import Error
+import pandas as pd
 
 class DatabaseHandler:
     def __init__(self, db_file):
@@ -55,6 +56,24 @@ class DatabaseHandler:
             cur = conn.cursor()
             cur.execute(sql)
             return cur.fetchone()[0]
+
+    def read_users_dataframe(self):
+        with self.create_connection() as conn:    
+            query = "SELECT id, username, is_admin FROM users"  # Adjust the query as needed
+            df = pd.read_sql_query(query, conn)
+            return df
+
+    def read_timesheets_admin_dataframe(self):
+        with self.create_connection() as conn:    
+            query = "SELECT * FROM timesheets"  # Adjust the query as needed
+            df = pd.read_sql_query(query, conn)
+            return df
+
+    def read_timesheets_dataframe(self, userID):
+        with self.create_connection() as conn:    
+            query = "SELECT * FROM timesheets WHERE user_id = ?"  # Adjust the query as needed
+            df = pd.read_sql_query(query, conn, params=(userID,))
+            return df
 
     def create_user(self, username, password, is_admin):
         """Create a new user in the users table."""

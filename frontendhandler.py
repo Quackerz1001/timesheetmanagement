@@ -30,6 +30,10 @@ def show_admin_app():
     # User management section
     st.header("User Management")
 
+    # Read dataframe from the database
+    df = db_handler.read_users_dataframe()
+    st.dataframe(df, hide_index = True)
+
     # Create User
     st.subheader("Create User")
     new_username = st.text_input("New Username",key="nu1")
@@ -74,6 +78,10 @@ def show_main_app():
     # Timesheet management section
     st.header("Timesheet Management")
 
+    # Read dataframe from the database
+    df = db_handler.read_timesheets_dataframe(st.session_state.userID)
+    st.dataframe(df, hide_index = True)
+
     # Create Timesheet
     st.subheader("Create Timesheet")
     project_name = st.text_input("Project Name")
@@ -101,7 +109,7 @@ def show_main_app():
     st.subheader("Update Timesheet")
     timesheet_id_to_update = st.number_input("Timesheet ID to Update", min_value=1)
     new_project_name = st.text_input("New Project Name")
-    new_hours_spent = st.number_input("New Hours Spent", min_value=1)
+    new_hours_spent = st.number_input("New Hours Spent", min_value=1, max_value=8)
     new_date = st.date_input("New Date")
     if st.button("Update Timesheet"):
         timesheet_update = db_handler.read_timesheet(timesheet_id_to_update)
@@ -128,11 +136,15 @@ def show_main_app_admin():
     # Timesheet management section
     st.header("Timesheet Management")
 
+    # Read dataframe from the database
+    df = db_handler.read_timesheets_admin_dataframe()
+    st.dataframe(df, hide_index = True)
+
     # Create Timesheet
     st.subheader("Create Timesheet")
     user_id_for_timesheet = st.number_input("User ID for Timesheet", min_value=1)
     project_name = st.text_input("Project Name")
-    hours_spent = st.number_input("Hours Spent", min_value=1)
+    hours_spent = st.number_input("Hours Spent", min_value=1, max_value=8)
     date = st.date_input("Date")
     if st.button("Create Timesheet"):
         timesheet_create = db_handler.read_timesheet_by_date(user_id_for_timesheet, date)
@@ -157,7 +169,7 @@ def show_main_app_admin():
     st.subheader("Update Timesheet")
     timesheet_id_to_update = st.number_input("Timesheet ID to Update", min_value=1)
     new_project_name = st.text_input("New Project Name")
-    new_hours_spent = st.number_input("New Hours Spent", min_value=1)
+    new_hours_spent = st.number_input("New Hours Spent", min_value=1, max_value=8)
     new_date = st.date_input("New Date")
     if st.button("Update Timesheet"):
         timesheet_update = db_handler.read_timesheet(timesheet_id_to_update)
