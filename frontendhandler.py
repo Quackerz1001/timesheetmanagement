@@ -39,8 +39,12 @@ def show_admin_app():
     new_username = st.text_input("New Username",key="nu1")
     new_password = st.text_input("New Password", type="password",key="np1")
     if st.button("Create User"):
-        user_id = db_handler.create_user(new_username, hashlib.sha256(new_password.encode()).hexdigest(), False)
-        st.success(f"User created with ID: {user_id}")
+        user_create = db_handler.read_user_by_username(new_username)
+        if not user_create:
+            user_id = db_handler.create_user(new_username, hashlib.sha256(new_password.encode()).hexdigest(), False)
+            st.success(f"User created with ID: {user_id}")
+        else:
+            st.error("User with that username already exists.")
 
     # Read User
     st.subheader("Read User")
