@@ -26,6 +26,14 @@ def confirmTimesheet(timesheetID):
         db_handler.delete_timesheet(timesheetID)
         st.success("Timesheet deleted.")
 
+@st.dialog("Logout")
+def confirmLogout():
+    st.write(f"Confirm logout?")
+    if st.button("Confirm"):
+        st.session_state.logged_in = False
+        st.success("You have been logged out.")
+        st.rerun()
+
 def show_admin_app():
     # User management section
     st.header("User Management")
@@ -62,8 +70,17 @@ def show_admin_app():
     new_username = st.text_input("New Username",key="nu2")
     new_password = st.text_input("New Password", type="password",key="np2")
     if st.button("Update User"):
-        db_handler.update_user(user_id_to_update, new_username, hashlib.sha256(new_password.encode()).hexdigest())
-        st.success("User updated.")
+        user_update = db_handler.read_user(user_id_to_update)
+        user_update_check = db_handler.read_user_by_username(new_username)
+        if user_update:
+            if not user_update_check or user_update_check[0] == user_update[0]:
+                db_handler.update_user(user_id_to_update, new_username, hashlib.sha256(new_password.encode()).hexdigest())
+                st.success("User updated.")
+            else:
+                st.error("Username already in use.")
+        else:
+            st.error("User does not exist.")
+        
 
     # Delete User
     st.subheader("Delete User")
@@ -73,9 +90,7 @@ def show_admin_app():
 
     # Logout option
     if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.success("You have been logged out.")
-        st.rerun()
+        confirmLogout()
 
 
 def show_main_app():
@@ -93,11 +108,14 @@ def show_main_app():
     date = st.date_input("Date")
     if st.button("Create Timesheet"):
         timesheet_create = db_handler.read_timesheet_by_date(st.session_state.userID, date)
-        if not timesheet_create:
-            timesheet_id = db_handler.create_timesheet(st.session_state.userID, project_name, hours_spent, date)
-            st.success(f"Timesheet created with ID: {timesheet_id}")
+        if not project_name == "":
+            if not timesheet_create:
+                timesheet_id = db_handler.create_timesheet(st.session_state.userID, project_name, hours_spent, date)
+                st.success(f"Timesheet created with ID: {timesheet_id}")
+            else:
+                st.error("Timesheet exists for date.")
         else:
-            st.error("Timesheet exists for date.")
+            st.error("Project name cannot be blank.")
 
     # Read Timesheet
     st.subheader("Read Timesheet")
@@ -132,9 +150,8 @@ def show_main_app():
 
     # Logout option
     if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.success("You have been logged out.")
-        st.rerun()
+        confirmLogout()
+        
 
 def show_main_app_admin():
     # Timesheet management section
@@ -151,12 +168,16 @@ def show_main_app_admin():
     hours_spent = st.number_input("Hours Spent", min_value=1, max_value=8)
     date = st.date_input("Date")
     if st.button("Create Timesheet"):
+        timesheet_user_create = db_handler.read_user(user_id_for_timesheet)
         timesheet_create = db_handler.read_timesheet_by_date(user_id_for_timesheet, date)
-        if not timesheet_create:
-            timesheet_id = db_handler.create_timesheet(user_id_for_timesheet, project_name, hours_spent, date)
-            st.success(f"Timesheet created with ID: {timesheet_id}")
+        if timesheet_user_create:
+            if not timesheet_create:
+                timesheet_id = db_handler.create_timesheet(user_id_for_timesheet, project_name, hours_spent, date)
+                st.success(f"Timesheet created with ID: {timesheet_id}")
+            else:
+                st.error(f"Timesheet exists for date and user. Timesheet ID: {timesheet_create[0]}")
         else:
-            st.error(f"Timesheet exists for date and user. Timesheet ID: {timesheet_create[0]}")
+            st.error(f"User does not exist.")
         
 
     # Read Timesheet
@@ -192,13 +213,16 @@ def show_main_app_admin():
     st.subheader("Delete Timesheet")
     timesheet_id_to_delete = st.number_input("Timesheet ID to Delete", min_value=1)
     if st.button("Delete Timesheet"):
-        confirmTimesheet(timesheet_id_to_delete)
+        timesheet_delete = db_handler.read_timesheet(timesheet_id_to_delete)
+        if timesheet_delete:
+            confirmTimesheet(timesheet_id_to_delete)
+        else:
+            st.error(f"Timesheet does not exist.")
+        
 
     # Logout option
     if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.success("You have been logged out.")
-        st.rerun()
+        confirmLogout()
 
 
 def login_page():
